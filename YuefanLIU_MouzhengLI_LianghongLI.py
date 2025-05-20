@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+import seaborn as sns
 
 # Question 0 : Initialisation du fichier de réponses
 # 初始化答案文件
@@ -249,3 +250,22 @@ scatter_with_labels(min_abs_corr[0], min_abs_corr[1], min_abs_corr[0], min_abs_c
 # On calcule la matrice de corrélation pour toutes les variables météorologiques.
 # On identifie les deux variables les plus corrélées positivement, négativement et les moins corrélées.
 # Les nuages de points permettent de visualiser la relation linéaire entre ces variables, avec le nom de chaque ville affiché.
+
+# Question 7
+# Calculer la matrice de corrélation entre les villes (corrélation sur les variables météorologiques)
+# On transpose le DataFrame pour avoir les villes en colonnes
+villes_corr = df_data1_clean[cols].T.corr()
+
+# Afficher la matrice de corrélation sous forme de heatmap
+plt.figure(figsize=(12,10))
+sns.heatmap(villes_corr, cmap='coolwarm', annot=False, xticklabels=df_data1_clean['Ville'], yticklabels=df_data1_clean['Ville'])
+plt.title('Matrice de corrélation entre les villes')
+plt.xlabel('Ville')
+plt.ylabel('Ville')
+plt.tight_layout()
+plt.show()
+
+# Explication :
+# Cette matrice montre à quel point les profils météorologiques des villes sont similaires.
+# Une valeur proche de 1 indique que deux villes ont des conditions météorologiques très similaires sur l'année, tandis qu'une valeur proche de 0 ou négative indique des profils très différents.
+# On peut repérer des groupes de villes très corrélées (par exemple, des villes géographiquement proches ou ayant un climat similaire).
