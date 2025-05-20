@@ -2,6 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 
 # Question 0 : Initialisation du fichier de réponses
 # 初始化答案文件
@@ -269,3 +271,36 @@ plt.show()
 # Cette matrice montre à quel point les profils météorologiques des villes sont similaires.
 # Une valeur proche de 1 indique que deux villes ont des conditions météorologiques très similaires sur l'année, tandis qu'une valeur proche de 0 ou négative indique des profils très différents.
 # On peut repérer des groupes de villes très corrélées (par exemple, des villes géographiquement proches ou ayant un climat similaire).
+
+# Question 8
+# Standardiser les données (centrer et réduire)
+X = df_data1_clean[cols].values
+scaler = StandardScaler()
+X_std = scaler.fit_transform(X)
+
+# Appliquer l'ACP
+pca = PCA()
+X_pca = pca.fit_transform(X_std)
+
+# Afficher les deux premières composantes principales
+plt.figure(figsize=(8,6))
+plt.scatter(X_pca[:,0], X_pca[:,1], color='purple')
+for i, ville in enumerate(df_data1_clean['Ville']):
+    plt.text(X_pca[i,0], X_pca[i,1], ville, fontsize=8)
+plt.xlabel(f'PC1 ({pca.explained_variance_ratio_[0]*100:.1f}% variance)')
+plt.ylabel(f'PC2 ({pca.explained_variance_ratio_[1]*100:.1f}% variance)')
+plt.title('Projection des villes sur les deux premières composantes principales (ACP)')
+plt.grid(alpha=0.3)
+plt.show()
+
+# Écrire le pourcentage de variance expliquée par PC1 et PC2 dans le fichier de réponses
+var_pc1 = pca.explained_variance_ratio_[0] * 100
+var_pc2 = pca.explained_variance_ratio_[1] * 100
+df_reponses.loc[df_reponses['Question'] == 'q8a', 'Reponse1'] = var_pc1
+df_reponses.loc[df_reponses['Question'] == 'q8b', 'Reponse1'] = var_pc2
+df_reponses.to_csv(csv_path, index=False)
+
+# Explication :
+# On centre et réduit les données, puis on applique une ACP.
+# On affiche les villes dans le plan des deux premières composantes principales, qui résument la majorité de la variance des données.
+# Les pourcentages de variance expliquée par PC1 et PC2 sont indiqués sur les axes et enregistrés dans le fichier de réponses.
