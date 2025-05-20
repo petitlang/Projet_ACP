@@ -154,6 +154,40 @@ stat_reps_5 = [
 for q, val in stat_reps_5:
     df_reponses.loc[df_reponses['Question'] == q, 'Reponse1'] = val
 
+# Question 6
+# Calculer la matrice de corrélation pour les variables météorologiques
+cols = ['Temperature_minimale', 'Temperature_maximale', 'Hauteur_precipitations', 'Duree_ensoleillement']
+corr_matrix = df_data1_clean[cols].corr()
+
+# Chercher les deux variables les plus positivement corrélées (hors diagonale)
+corr_pairs = corr_matrix.unstack()
+corr_pairs = corr_pairs[corr_pairs.index.get_level_values(0) != corr_pairs.index.get_level_values(1)]
+corr_pairs = corr_pairs.drop_duplicates()
+
+# Plus positivement corrélées (q6a)
+max_corr = corr_pairs.idxmax()
+max_corr_val = corr_pairs.max()
+# Plus négativement corrélées (q6b)
+min_corr = corr_pairs.idxmin()
+min_corr_val = corr_pairs.min()
+# Les moins corrélées (q6c, valeur la plus proche de 0)
+min_abs_corr = corr_pairs.abs().idxmin()
+min_abs_corr_val = corr_pairs[min_abs_corr]
+
+# Écrire les résultats dans le fichier de réponses
+# q6a
+q6a_vars = f"{max_corr[0]} & {max_corr[1]}"
+df_reponses.loc[df_reponses['Question'] == 'q6a', 'Reponse1'] = q6a_vars
+df_reponses.loc[df_reponses['Question'] == 'q6a', 'Reponse2'] = max_corr_val
+# q6b
+q6b_vars = f"{min_corr[0]} & {min_corr[1]}"
+df_reponses.loc[df_reponses['Question'] == 'q6b', 'Reponse1'] = q6b_vars
+df_reponses.loc[df_reponses['Question'] == 'q6b', 'Reponse2'] = min_corr_val
+# q6c
+q6c_vars = f"{min_abs_corr[0]} & {min_abs_corr[1]}"
+df_reponses.loc[df_reponses['Question'] == 'q6c', 'Reponse1'] = q6c_vars
+df_reponses.loc[df_reponses['Question'] == 'q6c', 'Reponse2'] = min_abs_corr_val
+
 df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
 
 # Explication :
@@ -190,3 +224,28 @@ plt.show()
 # On calcule la moyenne, la médiane et l'écart-type pour la durée d'ensoleillement, qui est la variable la plus dispersée selon la variance.
 # L'histogramme permet de visualiser la répartition de l'ensoleillement parmi les villes.
 # Si la moyenne et la médiane sont proches, la distribution est plutôt symétrique. Un écart-type élevé indique une grande dispersion.
+
+# Question 6 image
+# Afficher les nuages de points pour chaque paire trouvée, avec le nom des villes
+def scatter_with_labels(x, y, xlabel, ylabel, title):
+    plt.figure(figsize=(8,5))
+    plt.scatter(df_data1_clean[x], df_data1_clean[y], color='green')
+    for i, row in df_data1_clean.iterrows():
+        plt.text(row[x], row[y], row['Ville'], fontsize=8)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.grid(alpha=0.3)
+    plt.show()
+
+# Plus positivement corrélées
+scatter_with_labels(max_corr[0], max_corr[1], max_corr[0], max_corr[1], f"Corrélation positive maximale : {q6a_vars} (r={max_corr_val:.2f})")
+# Plus négativement corrélées
+scatter_with_labels(min_corr[0], min_corr[1], min_corr[0], min_corr[1], f"Corrélation négative maximale : {q6b_vars} (r={min_corr_val:.2f})")
+# Les moins corrélées
+scatter_with_labels(min_abs_corr[0], min_abs_corr[1], min_abs_corr[0], min_abs_corr[1], f"Corrélation la plus faible : {q6c_vars} (r={min_abs_corr_val:.2f})")
+
+# Explication :
+# On calcule la matrice de corrélation pour toutes les variables météorologiques.
+# On identifie les deux variables les plus corrélées positivement, négativement et les moins corrélées.
+# Les nuages de points permettent de visualiser la relation linéaire entre ces variables, avec le nom de chaque ville affiché.
