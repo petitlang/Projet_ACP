@@ -2,12 +2,37 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
-# Vérifier si le fichier de réponses existe et s'il est vide, ajouter l'en-tête si nécessaire
-# 检查答案文件是否存在且为空，如果是则写入表头
+# Question 0 : Initialisation du fichier de réponses
+# 初始化答案文件
 csv_path = 'YuefanLIU_MouzhengLI_LianghongLI.csv'
 if not os.path.exists(csv_path) or os.stat(csv_path).st_size == 0:
-    with open(csv_path, 'w', encoding='utf-8') as f:
-        f.write('Question,Reponse1,Reponse2,Reponse3\n')
+    # Créer le DataFrame avec tous les numéros de questions si le fichier n'existe pas ou est vide
+    # 如果文件不存在或为空，创建包含所有题号的DataFrame
+    data = {
+        'Question': [
+            'q1a', 'q1b',
+            'q2a', 'q2b', 'q2c', 'q2d', 'q2e', 'q2f', 'q2g', 'q2h',
+            'q3a', 'q3b', 'q3c', 'q3d',
+            'q4a', 'q4b', 'q4c',
+            'q5a', 'q5b', 'q5c',
+            'q6a', 'q6b', 'q6c',
+            'q8a', 'q8b',
+            'q12a', 'q12b', 'q12c', 'q12d', 'q12e',
+            'q13a', 'q13b',
+            'q14a', 'q14b',
+            'q16a', 'q16b',
+            'q17'
+        ],
+        'Reponse1': [''] * 37,
+        'Reponse2': [''] * 37,
+        'Reponse3': [''] * 37
+    }
+    df_reponses = pd.DataFrame(data)
+    df_reponses.to_csv(csv_path, index=False)
+else:
+    # Si le fichier existe déjà, le lire simplement
+    # 如果文件已存在，直接读取
+    df_reponses = pd.read_csv(csv_path)
 
 # Lire le fichier data1.csv
 # 读取 data1.csv 文件
