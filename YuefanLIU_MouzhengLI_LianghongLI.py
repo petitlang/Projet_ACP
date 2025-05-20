@@ -1,5 +1,13 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
+
+# Vérifier si le fichier de réponses existe et s'il est vide, ajouter l'en-tête si nécessaire
+# 检查答案文件是否存在且为空，如果是则写入表头
+csv_path = 'YuefanLIU_MouzhengLI_LianghongLI.csv'
+if not os.path.exists(csv_path) or os.stat(csv_path).st_size == 0:
+    with open(csv_path, 'w', encoding='utf-8') as f:
+        f.write('Question,Reponse1,Reponse2,Reponse3\n')
 
 # Lire le fichier data1.csv
 # 读取 data1.csv 文件
