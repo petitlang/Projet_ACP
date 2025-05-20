@@ -304,3 +304,61 @@ df_reponses.to_csv(csv_path, index=False)
 # On centre et réduit les données, puis on applique une ACP.
 # On affiche les villes dans le plan des deux premières composantes principales, qui résument la majorité de la variance des données.
 # Les pourcentages de variance expliquée par PC1 et PC2 sont indiqués sur les axes et enregistrés dans le fichier de réponses.
+
+# Question 9
+# Afficher le cercle de corrélation de l'ACP
+plt.figure(figsize=(7,7))
+# Tracer le cercle
+circle = plt.Circle((0,0), 1, color='gray', fill=False, linestyle='--')
+plt.gca().add_artist(circle)
+
+# Les coordonnées des variables sur les deux premiers axes principaux
+for i, var in enumerate(cols):
+    plt.arrow(0, 0, pca.components_[0, i], pca.components_[1, i],
+              color='red', alpha=0.7, head_width=0.05)
+    plt.text(pca.components_[0, i]*1.1, pca.components_[1, i]*1.1, var, color='blue', fontsize=12)
+plt.xlabel(f'PC1 ({pca.explained_variance_ratio_[0]*100:.1f}%)')
+plt.ylabel(f'PC2 ({pca.explained_variance_ratio_[1]*100:.1f}%)')
+plt.title('Cercle de corrélation (ACP)')
+plt.xlim(-1.1, 1.1)
+plt.ylim(-1.1, 1.1)
+plt.grid(alpha=0.3)
+plt.axhline(0, color='grey', lw=1)
+plt.axvline(0, color='grey', lw=1)
+plt.show()
+
+# Explication :
+# Le cercle de corrélation permet de visualiser la contribution et la corrélation des variables initiales avec les deux premières composantes principales.
+# Plus une flèche est longue et proche du cercle, plus la variable est bien représentée par les deux axes.
+# Les variables proches l'une de l'autre sont corrélées positivement, celles en opposition sont corrélées négativement.
+
+# Question 10
+# Superposer les résultats de la question 8 (projection des villes) et de la question 9 (cercle de corrélation)
+plt.figure(figsize=(8,8))
+# Cercle de corrélation
+circle = plt.Circle((0,0), 1, color='gray', fill=False, linestyle='--')
+plt.gca().add_artist(circle)
+# Variables (flèches)
+for i, var in enumerate(cols):
+    plt.arrow(0, 0, pca.components_[0, i], pca.components_[1, i],
+              color='red', alpha=0.7, head_width=0.05)
+    plt.text(pca.components_[0, i]*1.1, pca.components_[1, i]*1.1, var, color='blue', fontsize=12)
+# Villes (points)
+plt.scatter(X_pca[:,0], X_pca[:,1], color='purple')
+for i, ville in enumerate(df_data1_clean['Ville']):
+    plt.text(X_pca[i,0], X_pca[i,1], ville, fontsize=8, color='black')
+plt.xlabel(f'PC1 ({pca.explained_variance_ratio_[0]*100:.1f}%)')
+plt.ylabel(f'PC2 ({pca.explained_variance_ratio_[1]*100:.1f}%)')
+plt.title('Projection des villes et cercle de corrélation (ACP)')
+plt.xlim(-1.1, 1.1)
+plt.ylim(-1.1, 1.1)
+plt.grid(alpha=0.3)
+plt.axhline(0, color='grey', lw=1)
+plt.axvline(0, color='grey', lw=1)
+plt.show()
+
+# Explication :
+# Cette figure combine la projection des villes sur les deux premières composantes principales et le cercle de corrélation.
+# On peut visualiser à la fois la position des villes et l'influence des variables météorologiques.
+# Les villes extrêmes sur un axe sont généralement celles qui présentent les valeurs extrêmes pour la variable correspondante (voir question 2).
+# Ainsi, on peut retrouver les villes associées aux valeurs minimales ou maximales de chaque variable en observant leur position par rapport aux flèches.
