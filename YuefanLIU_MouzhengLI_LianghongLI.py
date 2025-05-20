@@ -111,6 +111,24 @@ stat_reps = [
 for q, val in stat_reps:
     df_reponses.loc[df_reponses['Question'] == q, 'Reponse1'] = val
 
+# Question 5
+# Calculer la moyenne, la médiane et l'écart-type de la variable de variance maximale (Duree_ensoleillement, q3d)
+# Moyenne
+moyenne_ensoleil = df_data1_clean['Duree_ensoleillement'].mean()
+# Médiane
+mediane_ensoleil = df_data1_clean['Duree_ensoleillement'].median()
+# Écart-type
+std_ensoleil = df_data1_clean['Duree_ensoleillement'].std()
+
+# Écrire les résultats dans le fichier de réponses
+stat_reps_5 = [
+    ('q5a', moyenne_ensoleil),
+    ('q5b', mediane_ensoleil),
+    ('q5c', std_ensoleil),
+]
+for q, val in stat_reps_5:
+    df_reponses.loc[df_reponses['Question'] == q, 'Reponse1'] = val
+
 df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
 
 # Explication :
@@ -132,3 +150,18 @@ plt.show()
 # On calcule la moyenne, la médiane et l'écart-type pour résumer la distribution de la température minimale.
 # L'histogramme permet de visualiser la répartition des températures minimales parmi les villes.
 # Si la moyenne et la médiane sont proches, la distribution est plutôt symétrique. Un écart-type faible indique peu de dispersion.
+
+# Question 5 image
+# Afficher l'histogramme de la durée d'ensoleillement
+plt.figure(figsize=(8,5))
+plt.hist(df_data1_clean['Duree_ensoleillement'], bins=10, color='orange', edgecolor='black')
+plt.title("Histogramme de la durée d'ensoleillement")
+plt.xlabel("Durée d'ensoleillement (heures)")
+plt.ylabel('Nombre de villes')
+plt.grid(axis='y', alpha=0.5)
+plt.show()
+
+# Explication :
+# On calcule la moyenne, la médiane et l'écart-type pour la durée d'ensoleillement, qui est la variable la plus dispersée selon la variance.
+# L'histogramme permet de visualiser la répartition de l'ensoleillement parmi les villes.
+# Si la moyenne et la médiane sont proches, la distribution est plutôt symétrique. Un écart-type élevé indique une grande dispersion.
