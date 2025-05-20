@@ -20,7 +20,7 @@ df_data1_clean = df_data1.dropna()
 
 # 将答案写入csv文件
 # Écrire les réponses dans le fichier csv
-df_reponses = pd.read_csv('YuefanLIU_MouzhengLI_LianghongLI.csv') if not pd.read_csv('YuefanLIU_MouzhengLI_LianghongLI.csv').empty else pd.read_csv('modele.csv')
+df_reponses = pd.read_csv('YuefanLIU_MouzhengLI_LianghongLI.csv')
 df_reponses.loc[df_reponses['Question'] == 'q1a', 'Reponse1'] = n_villes
 df_reponses.loc[df_reponses['Question'] == 'q1b', 'Reponse1'] = n_villes_nan
 
@@ -67,9 +67,27 @@ for q, ville, val in reps:
     df_reponses.loc[df_reponses['Question'] == q, 'Reponse1'] = ville
     df_reponses.loc[df_reponses['Question'] == q, 'Reponse2'] = val
 
+# Calculer la variance pour chaque variable demandée (q3a-d)
+# Utiliser la méthode .var() de pandas (par défaut, ddof=1 pour l'échantillon)
+var_temp_min = df_data1_clean['Temperature_minimale'].var()
+var_temp_max = df_data1_clean['Temperature_maximale'].var()
+var_precip = df_data1_clean['Hauteur_precipitations'].var()
+var_ensoleil = df_data1_clean['Duree_ensoleillement'].var()
+
+# Écrire les résultats dans le fichier de réponses
+# Les colonnes Reponse1 pour la variance
+var_reps = [
+    ('q3a', var_temp_min),
+    ('q3b', var_temp_max),
+    ('q3c', var_precip),
+    ('q3d', var_ensoleil),
+]
+for q, var in var_reps:
+    df_reponses.loc[df_reponses['Question'] == q, 'Reponse1'] = var
+
 df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
 
 # Explication :
-# On cherche pour chaque variable la ville qui présente la valeur extrême (min ou max),
-# puis on enregistre le nom de la ville et la valeur correspondante dans le fichier de réponses.
-# Cela permet d'identifier les villes les plus chaudes, froides, pluvieuses ou ensoleillées de l'échantillon.
+# La variance mesure la dispersion des valeurs autour de la moyenne pour chaque variable.
+# Une variance élevée indique que les valeurs sont très dispersées, tandis qu'une faible variance indique que les valeurs sont proches de la moyenne.
+# Cela permet de comparer la variabilité des températures, des précipitations et de l'ensoleillement entre les villes.
