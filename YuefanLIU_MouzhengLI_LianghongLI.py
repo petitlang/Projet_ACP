@@ -1,4 +1,5 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Lire le fichier data1.csv
 # 读取 data1.csv 文件
@@ -85,9 +86,41 @@ var_reps = [
 for q, var in var_reps:
     df_reponses.loc[df_reponses['Question'] == q, 'Reponse1'] = var
 
+# Calculer la moyenne, la médiane et l'écart-type de la température minimale (q4a, q4b, q4c)
+# Moyenne
+moyenne_temp_min = df_data1_clean['Temperature_minimale'].mean()
+# Médiane
+mediane_temp_min = df_data1_clean['Temperature_minimale'].median()
+# Écart-type
+std_temp_min = df_data1_clean['Temperature_minimale'].std()
+
+# Écrire les résultats dans le fichier de réponses
+stat_reps = [
+    ('q4a', moyenne_temp_min),
+    ('q4b', mediane_temp_min),
+    ('q4c', std_temp_min),
+]
+for q, val in stat_reps:
+    df_reponses.loc[df_reponses['Question'] == q, 'Reponse1'] = val
+
 df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
 
 # Explication :
 # La variance mesure la dispersion des valeurs autour de la moyenne pour chaque variable.
 # Une variance élevée indique que les valeurs sont très dispersées, tandis qu'une faible variance indique que les valeurs sont proches de la moyenne.
 # Cela permet de comparer la variabilité des températures, des précipitations et de l'ensoleillement entre les villes.
+
+# Question 4 image
+# Afficher l'histogramme de la température minimale
+plt.figure(figsize=(8,5))
+plt.hist(df_data1_clean['Temperature_minimale'], bins=10, color='skyblue', edgecolor='black')
+plt.title('Histogramme de la température minimale')
+plt.xlabel('Température minimale (°C)')
+plt.ylabel('Nombre de villes')
+plt.grid(axis='y', alpha=0.5)
+plt.show()
+
+# Explication :
+# On calcule la moyenne, la médiane et l'écart-type pour résumer la distribution de la température minimale.
+# L'histogramme permet de visualiser la répartition des températures minimales parmi les villes.
+# Si la moyenne et la médiane sont proches, la distribution est plutôt symétrique. Un écart-type faible indique peu de dispersion.
