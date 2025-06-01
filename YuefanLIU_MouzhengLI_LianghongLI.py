@@ -1,14 +1,15 @@
-import pandas as pd
-import matplotlib.pyplot as plt
 import os
+import calendar
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 import seaborn as sns
+from itertools import combinations
+from scipy import stats
+from scipy.special import comb  # Importer la fonction comb pour les combinaisons
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-import calendar
 from sklearn.linear_model import LinearRegression
-import numpy as np
-from scipy import stats
-from itertools import combinations
 
 # Question 0 : Initialisation du fichier de réponses
 # 初始化答案文件
@@ -493,6 +494,15 @@ plt.show()
 # On évalue la qualité du modèle en calculant le R2 ajusté et on prédit la température maximale pour janvier 2025.
 # On affiche la courbe de régression pour le modèle optimal et on prédit la température maximale pour janvier 2025.
 
+# 写入csv文件
+# Écrire les résultats dans le fichier de réponses pour la question 12
+df_reponses.loc[df_reponses['Question'] == 'q12a', 'Reponse1'] = n_opt
+df_reponses.loc[df_reponses['Question'] == 'q12b', 'Reponse1'] = r2_adj_opt
+df_reponses.loc[df_reponses['Question'] == 'q12c', 'Reponse1'] = r2_opt
+df_reponses.loc[df_reponses['Question'] == 'q12d', 'Reponse1'] = beta0_opt
+df_reponses.loc[df_reponses['Question'] == 'q12e', 'Reponse1'] = beta1_opt
+df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
+
 # Question 13 : Comparaison entre la température réelle et prédite pour janvier 2025
 # La température réelle en janvier 2025 était de 7,5°C
 # La température prédite a déjà été calculée : pred_2025_jan
@@ -603,70 +613,78 @@ y = []
 for i in range(max_lag, len(T)):
     X_lags.append([T[i-j-1] for j in range(max_lag)])
     y.append(T[i])
-X_lags = np.array(X_lags)
+X_lags = np.array(X_lags).reshape(-1, max_lag)  # S'assurer que X_lags est bien une matrice 2D
 y = np.array(y)
 
-# 所有组合数（不含空集）
-# Nombre de combinaisons possibles (hors ensemble vide)
-comb_count = sum([int(stats.comb(max_lag, k)) for k in range(1, max_lag+1)])
-print(f"Nombre de combinaisons possibles : {comb_count}")
-
-# 记录最优结果
-# Stocker le meilleur résultat
-best_r2_adj = -np.inf
-best_vars = None
-best_model = None
-best_pvalues = None
-best_coefs = None
-
-for k in range(1, max_lag+1):
-    for idxs in combinations(range(max_lag), k):
-        X_sel = X_lags[:, idxs]
-        model = LinearRegression().fit(X_sel, y)
-        y_pred = model.predict(X_sel)
-        r2 = model.score(X_sel, y)
-        n = len(y)
-        p = X_sel.shape[1]
-        r2_adj = 1 - (1 - r2) * (n - 1) / (n - p - 1)
-        # 计算p值（用t检验，近似）
-        residuals = y - y_pred
-        SSE = np.sum(residuals**2)
-        se = np.sqrt(SSE / (n - p - 1))
-        X_design = np.hstack([np.ones((n,1)), X_sel])
-        cov = np.linalg.inv(X_design.T @ X_design)
-        se_betas = np.sqrt(np.diag(cov)) * se
-        t_stats = np.hstack([model.intercept_, model.coef_]) / se_betas
-        pvals = 2 * (1 - stats.t.cdf(np.abs(t_stats), df=n-p-1))
-        # 只考虑所有变量p值<0.05的情况
-        if r2_adj > best_r2_adj and np.all(pvals[1:] < 0.05):
-            best_r2_adj = r2_adj
-            best_vars = idxs
-            best_model = model
-            best_pvalues = pvals
-            best_coefs = np.hstack([model.intercept_, model.coef_])
-
-# 输出最优结果
-if best_vars is not None:
-    print(f"R2 ajusté optimal : {best_r2_adj:.4f}")
-    print(f"Variables sélectionnées (lags) : {[f'Temp_{i+1}' for i in best_vars]}")
-    print(f"Nombre de variables : {len(best_vars)}")
-    print(f"Coefficients : {best_coefs}")
-    print(f"p-values : {best_pvalues}")
-    if np.all(best_pvalues[1:] < 0.05):
-        conclusion = "Oui, il existe une relation linéaire significative (α=5%)."
-    else:
-        conclusion = "Non, pas de relation linéaire significative (α=5%)."
+best_vars = None  # Initialiser best_vars pour éviter NameError
+# 检查数据量是否足够
+# Vérifier si on a assez de données
+if X_lags.shape[0] == 0:
+    print("Pas assez de données pour la régression multivariée avec les lags choisis.")
 else:
-    print("Aucune combinaison n'a toutes les p-values < 0.05.")
-    conclusion = "Non, pas de relation linéaire significative (α=5%)."
+    # 所有组合数（不含空集）
+    # Nombre de combinaisons possibles (hors ensemble vide)
+    comb_count = sum([int(comb(max_lag, k)) for k in range(1, max_lag+1)])
+    print(f"Nombre de combinaisons possibles : {comb_count}")
 
-# 写入csv
-# Écrire les résultats dans le fichier de réponses
-df_reponses.loc[df_reponses['Question'] == 'q16a', 'Reponse1'] = comb_count
-df_reponses.loc[df_reponses['Question'] == 'q16b', 'Reponse1'] = len(best_vars) if best_vars is not None else 0
-df_reponses.loc[df_reponses['Question'] == 'q16b', 'Reponse2'] = best_r2_adj if best_vars is not None else ''
-df_reponses.loc[df_reponses['Question'] == 'q16b', 'Reponse3'] = str([f'Temp_{i+1}' for i in best_vars]) if best_vars is not None else ''
-df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
+    # 记录最优结果
+    # Stocker le meilleur résultat
+    best_r2_adj = -np.inf
+    best_vars = None
+    best_model = None
+    best_pvalues = None
+    best_coefs = None
+
+    for k in range(1, max_lag+1):
+        for idxs in combinations(range(max_lag), k):
+            X_sel = X_lags[:, idxs]
+            if X_sel.shape[0] == 0:
+                continue  # Sauter les cas où il n'y a pas d'échantillons
+            model = LinearRegression().fit(X_sel, y)
+            y_pred = model.predict(X_sel)
+            r2 = model.score(X_sel, y)
+            n = len(y)
+            p = X_sel.shape[1]
+            r2_adj = 1 - (1 - r2) * (n - 1) / (n - p - 1)
+            # 计算p值（用t检验，近似）
+            residuals = y - y_pred
+            SSE = np.sum(residuals**2)
+            se = np.sqrt(SSE / (n - p - 1))
+            X_design = np.hstack([np.ones((n,1)), X_sel])
+            cov = np.linalg.inv(X_design.T @ X_design)
+            se_betas = np.sqrt(np.diag(cov)) * se
+            t_stats = np.hstack([model.intercept_, model.coef_]) / se_betas
+            pvals = 2 * (1 - stats.t.cdf(np.abs(t_stats), df=n-p-1))
+            # 只考虑所有变量p值<0.05的情况
+            if r2_adj > best_r2_adj and np.all(pvals[1:] < 0.05):
+                best_r2_adj = r2_adj
+                best_vars = idxs
+                best_model = model
+                best_pvalues = pvals
+                best_coefs = np.hstack([model.intercept_, model.coef_])
+
+    # 输出最优结果
+    if best_vars is not None:
+        print(f"R2 ajusté optimal : {best_r2_adj:.4f}")
+        print(f"Variables sélectionnées (lags) : {[f'Temp_{i+1}' for i in best_vars]}")
+        print(f"Nombre de variables : {len(best_vars)}")
+        print(f"Coefficients : {best_coefs}")
+        print(f"p-values : {best_pvalues}")
+        if np.all(best_pvalues[1:] < 0.05):
+            conclusion = "Oui, il existe une relation linéaire significative (α=5%)."
+        else:
+            conclusion = "Non, pas de relation linéaire significative (α=5%)."
+    else:
+        print("Aucune combinaison n'a toutes les p-values < 0.05.")
+        conclusion = "Non, pas de relation linéaire significative (α=5%)."
+
+    # 写入csv
+    # Écrire les résultats dans le fichier de réponses
+    df_reponses.loc[df_reponses['Question'] == 'q16a', 'Reponse1'] = comb_count if X_lags.shape[0] > 0 else 0
+    df_reponses.loc[df_reponses['Question'] == 'q16b', 'Reponse1'] = len(best_vars) if best_vars is not None else 0
+    df_reponses.loc[df_reponses['Question'] == 'q16b', 'Reponse2'] = best_r2_adj if best_vars is not None else ''
+    df_reponses.loc[df_reponses['Question'] == 'q16b', 'Reponse3'] = str([f'Temp_{i+1}' for i in best_vars]) if best_vars is not None else ''
+    df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
 
 # Question 17 : Prédiction pour janvier-avril 2025 avec le modèle multivarié optimal
 # 真实温度
@@ -693,7 +711,19 @@ for i in range(4):
 ecarts = [T_predites[i] - T_reelles[i] if not np.isnan(T_predites[i]) else None for i in range(4)]
 
 for i in range(4):
-    print(f"{mois_pred[i].capitalize()} 2025 : prédite = {T_predites[i]:.2f} °C, réelle = {T_reelles[i]} °C, écart = {ecarts[i]:.2f} °C")
+    pred = T_predites[i]
+    ecart = ecarts[i]
+    # 检查是否为None或nan，避免格式化报错
+    # Vérifier si la valeur est None ou nan pour éviter les erreurs de formatage
+    if pred is None or (isinstance(pred, float) and np.isnan(pred)):
+        pred_str = "NA"
+    else:
+        pred_str = f"{pred:.2f}"
+    if ecart is None or (isinstance(ecart, float) and np.isnan(ecart)):
+        ecart_str = "NA"
+    else:
+        ecart_str = f"{ecart:.2f}"
+    print(f"{mois_pred[i].capitalize()} 2025 : prédite = {pred_str} °C, réelle = {T_reelles[i]} °C, écart = {ecart_str} °C")
 
 # 写入csv
 # Écrire les résultats dans le fichier de réponses
@@ -705,3 +735,5 @@ df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
 # On constate que l'écart entre les températures prédites et réelles peut être important, surtout pour les mois éloignés de la période d'apprentissage.
 # Cela montre que le modèle multivarié, bien qu'il puisse s'ajuster aux données passées, n'est pas toujours fiable pour la prévision à long terme (effet d'accumulation d'erreur, extrapolation).
 # Il est donc préférable de rester prudent dans l'utilisation de ce modèle pour la prévision de plusieurs mois à l'avance.
+
+
