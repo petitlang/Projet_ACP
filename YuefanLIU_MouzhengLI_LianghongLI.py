@@ -558,3 +558,34 @@ print(f"Conclusion (α=5%) : {conclusion}")
 df_reponses.loc[df_reponses['Question'] == 'q14a', 'Reponse1'] = p_value
 df_reponses.loc[df_reponses['Question'] == 'q14b', 'Reponse1'] = conclusion
 df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
+
+# Question 15 : Superposer l'évolution de température en 2023 et 2024 à Paris
+# 在同一张图上画出2023年和2024年每月温度曲线
+# Tracer sur la même courbe l'évolution de la température maximale à Paris en 2023 et 2024
+
+data_2023 = df_data2[df_data2['Annee'] == 2023].copy()
+data_2024 = df_data2[df_data2['Annee'] == 2024].copy()
+
+# 保证月份顺序一致
+# S'assurer que l'ordre des mois est correct
+mois_fr = ['janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre']
+data_2023['Mois'] = pd.Categorical(data_2023['Mois'], categories=mois_fr, ordered=True)
+data_2024['Mois'] = pd.Categorical(data_2024['Mois'], categories=mois_fr, ordered=True)
+data_2023 = data_2023.sort_values('Mois')
+data_2024 = data_2024.sort_values('Mois')
+
+plt.figure(figsize=(10,6))
+plt.plot(data_2023['Mois'], data_2023['Temperature_maximale'], marker='o', color='orange', label='2023')
+plt.plot(data_2024['Mois'], data_2024['Temperature_maximale'], marker='o', color='blue', label='2024')
+plt.title("Évolution de la température maximale à Paris en 2023 et 2024")
+plt.xlabel("Mois")
+plt.ylabel("Température maximale (°C)")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# 评论：
+# On observe que les deux années présentent une évolution saisonnière similaire :
+# la température augmente du début de l'année jusqu'à l'été (juillet-août), puis diminue en automne et hiver.
+# Cependant, on peut remarquer des différences de niveau ou de pics entre les deux années, ce qui peut être dû à la variabilité climatique interannuelle.
