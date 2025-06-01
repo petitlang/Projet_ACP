@@ -5,6 +5,8 @@ import seaborn as sns
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 import calendar
+from sklearn.linear_model import LinearRegression
+import numpy as np
 
 # Question 0 : Initialisation du fichier de réponses
 # 初始化答案文件
@@ -397,3 +399,94 @@ plt.show()
 # On observe que la température maximale à Paris en 2024 augmente progressivement du janvier jusqu'à l'été (juillet-août),
 # puis diminue vers la fin de l'année. Ce schéma est typique du climat tempéré, avec des étés chauds et des hivers doux.
 # Les pics de température sont atteints en juillet et août, tandis que les températures les plus basses sont en hiver (janvier, décembre). 
+
+# Question 12 : Régression linéaire pour prédire la température maximale en janvier 2025
+from sklearn.linear_model import LinearRegression
+import numpy as np
+
+# 构造"numéro mois"变量，0表示1月，11表示12月
+# Créer la variable 'numéro mois' (0 pour janvier, 11 pour décembre)
+paris_2024 = paris_2024.copy()
+paris_2024['numero_mois'] = np.arange(0, 12)
+
+# 用于存储每个n的回归结果
+# Stocker les résultats pour chaque n
+results = []
+
+for n in range(1, 13): # 从1月到12月  
+    # 只取最近n个月的数据
+    # Prendre les n derniers mois
+    data_n = paris_2024.tail(n)
+    X = data_n['numero_mois'].values.reshape(-1, 1)
+    y = data_n['Temperature_maximale'].values
+    model = LinearRegression()
+    model.fit(X, y)
+    y_pred = model.predict(X)
+    # 计算R2
+    # Calculer R2
+    r2 = model.score(X, y)
+    # 计算R2 ajusté
+    # Calculer R2 ajusté
+    r2_adj = 1 - (1 - r2) * (len(y) - 1) / (len(y) - X.shape[1] - 1) if n > 1 else np.nan
+    results.append({
+        'n': n,
+        'r2': r2,
+        'r2_adj': r2_adj,
+        'beta0': model.intercept_,
+        'beta1': model.coef_[0],
+        'model': model
+    })
+
+# 找到R2 ajusté最大的n
+# Trouver la valeur optimale de n (R2 ajusté maximal)
+results_df = pd.DataFrame(results)
+best_row = results_df.loc[results_df['r2_adj'].idxmax()]
+n_opt = int(best_row['n'])
+r2_opt = best_row['r2']
+r2_adj_opt = best_row['r2_adj']
+beta0_opt = best_row['beta0']
+beta1_opt = best_row['beta1']
+model_opt = best_row['model']
+
+print(f"Valeur optimale de n : {n_opt}")
+print(f"R2 : {r2_opt:.4f}")
+print(f"R2 ajusté : {r2_adj_opt:.4f}")
+print(f"β0 : {beta0_opt:.4f}")
+print(f"β1 : {beta1_opt:.4f}")
+
+# 预测2025年1月（numéro mois=12）的温度
+# Prédire la température maximale pour janvier 2025 (numéro mois=12)
+pred_2025_jan = model_opt.predict(np.array([[12]]))[0]
+print(f"Température maximale prédite pour janvier 2025 : {pred_2025_jan:.2f} °C")
+
+# 可视化：最优n下的拟合曲线
+# Visualisation : courbe de régression pour n optimal
+plt.figure(figsize=(10,6))
+# 画真实点
+plt.scatter(paris_2024['numero_mois'], paris_2024['Temperature_maximale'], color='blue', label='Données réelles')
+# 画拟合点
+X_fit = paris_2024['numero_mois'].values.reshape(-1, 1)
+y_fit = model_opt.predict(X_fit)
+plt.plot(paris_2024['numero_mois'], y_fit, color='red', label='Régression linéaire (n optimal)')
+plt.xlabel('Numéro du mois (0=janvier, 11=décembre)')
+plt.ylabel('Température maximale (°C)')
+plt.title(f"Régression linéaire (n optimal={n_opt}) sur les {n_opt} derniers mois")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# 分析：
+# Analyse quantitative et visuelle :
+# Le meilleur modèle (n optimal) est celui qui maximise le R2 ajusté, ce qui signifie qu'il explique le mieux la variance des températures tout en évitant le sur-apprentissage.
+# On observe que la courbe de régression s'ajuste bien aux données récentes. La valeur de β1 indique la tendance (positive ou négative) des températures sur la période considérée.
+# La prédiction pour janvier 2025 est obtenue en extrapolant la droite de régression pour numéro mois=12.
+
+# Explication :
+# La régression linéaire simple est une méthode statistique pour étudier la relation entre une variable dépendante (température maximale) et une variable indépendante (numéro du mois).
+# On utilise les données de 2024 pour prédire la température maximale en janvier 2025.
+# On calcule le coefficient de détermination (R2) pour évaluer la qualité de l'ajustement du modèle.
+# On utilise le modèle de régression linéaire pour prédire la température maximale en janvier 2025.
+# On affiche la courbe de régression pour le modèle optimal et on prédit la température maximale pour janvier 2025.
+# On évalue la qualité du modèle en calculant le R2 ajusté et on prédit la température maximale pour janvier 2025.
+# On affiche la courbe de régression pour le modèle optimal et on prédit la température maximale pour janvier 2025.
