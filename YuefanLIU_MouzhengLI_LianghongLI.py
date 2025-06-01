@@ -7,6 +7,7 @@ from sklearn.decomposition import PCA
 import calendar
 from sklearn.linear_model import LinearRegression
 import numpy as np
+from scipy import stats
 
 # Question 0 : Initialisation du fichier de réponses
 # 初始化答案文件
@@ -509,4 +510,51 @@ if 'df_reponses' not in locals():
     df_reponses = pd.read_csv('YuefanLIU_MouzhengLI_LianghongLI.csv')
 df_reponses.loc[df_reponses['Question'] == 'q13a', 'Reponse1'] = pred_2025_jan
 df_reponses.loc[df_reponses['Question'] == 'q13b', 'Reponse1'] = écart
+df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
+
+# Question 14 : Test d'hypothèse pour le coefficient β1 du modèle optimal
+
+# 取最优n下的数据
+# Prendre les données utilisées pour le modèle optimal
+X_opt = paris_2024['numero_mois'].values[-n_opt:].reshape(-1, 1)
+y_opt = paris_2024['Temperature_maximale'].values[-n_opt:]
+
+# 预测值与残差
+# Valeurs prédites et résidus
+y_pred_opt = model_opt.predict(X_opt)
+residuals = y_opt - y_pred_opt
+n = n_opt
+p = 1  # 只有一个自变量
+
+# 计算标准误差
+# Calcul de l'erreur standard de β1
+SSE = np.sum(residuals**2)
+mean_x = np.mean(X_opt)
+Sxx = np.sum((X_opt.flatten() - mean_x)**2)
+se_beta1 = np.sqrt(SSE / (n - 2)) / np.sqrt(Sxx)
+
+# t统计量
+# Statistique t
+beta1 = beta1_opt
+t_stat = beta1 / se_beta1
+# p值（双尾）
+# p-value (bilatérale)
+p_value = 2 * (1 - stats.t.cdf(np.abs(t_stat), df=n-2))
+
+print(f"p-value pour le test de β1 : {p_value:.4g}")
+
+# α=5%下的结论
+# Conclusion pour α=5%
+alpha = 0.05
+if p_value < alpha:
+    conclusion = "Oui, la pente est significative : il existe une relation linéaire."
+else:
+    conclusion = "Non, la pente n'est pas significative : pas de relation linéaire."
+print(f"Conclusion (α=5%) : {conclusion}")
+
+# 写入csv文件
+# Écrire les résultats dans le fichier de réponses
+# q14a : p-value, q14b : conclusion
+df_reponses.loc[df_reponses['Question'] == 'q14a', 'Reponse1'] = p_value
+df_reponses.loc[df_reponses['Question'] == 'q14b', 'Reponse1'] = conclusion
 df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
