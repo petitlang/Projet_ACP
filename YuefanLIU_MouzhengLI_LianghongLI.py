@@ -490,3 +490,23 @@ plt.show()
 # On affiche la courbe de régression pour le modèle optimal et on prédit la température maximale pour janvier 2025.
 # On évalue la qualité du modèle en calculant le R2 ajusté et on prédit la température maximale pour janvier 2025.
 # On affiche la courbe de régression pour le modèle optimal et on prédit la température maximale pour janvier 2025.
+
+# Question 13 : Comparaison entre la température réelle et prédite pour janvier 2025
+# La température réelle en janvier 2025 était de 7,5°C
+# La température prédite a déjà été calculée : pred_2025_jan
+
+temp_reelle_2025_jan = 7.5
+# 计算差值
+# Calculer l'écart
+écart = pred_2025_jan - temp_reelle_2025_jan
+print(f"Température réelle (janvier 2025) : {temp_reelle_2025_jan} °C")
+print(f"Écart (prédite - réelle) : {écart:.2f} °C")
+
+# 写入csv文件
+# Écrire les résultats dans le fichier de réponses
+# q13a : température prédite, q13b : écart
+if 'df_reponses' not in locals():
+    df_reponses = pd.read_csv('YuefanLIU_MouzhengLI_LianghongLI.csv')
+df_reponses.loc[df_reponses['Question'] == 'q13a', 'Reponse1'] = pred_2025_jan
+df_reponses.loc[df_reponses['Question'] == 'q13b', 'Reponse1'] = écart
+df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
