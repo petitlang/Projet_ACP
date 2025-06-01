@@ -4,6 +4,7 @@ import os
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+import calendar
 
 # Question 0 : Initialisation du fichier de réponses
 # 初始化答案文件
@@ -362,3 +363,37 @@ plt.show()
 # On peut visualiser à la fois la position des villes et l'influence des variables météorologiques.
 # Les villes extrêmes sur un axe sont généralement celles qui présentent les valeurs extrêmes pour la variable correspondante (voir question 2).
 # Ainsi, on peut retrouver les villes associées aux valeurs minimales ou maximales de chaque variable en observant leur position par rapport aux flèches.
+
+## Partie 2 : Régression linéaire simple 
+
+# Question 11 : Afficher l'évolution de la température en 2024 à Paris en fonction du mois
+# 读取 data2.csv 文件
+# Lecture du fichier data2.csv
+
+df_data2 = pd.read_csv('data2.csv')
+
+# 只保留2024年的数据
+# Garder uniquement les données de l'année 2024
+paris_2024 = df_data2[df_data2['Annee'] == 2024]
+
+# 为了保证月份顺序，定义法语月份顺序
+# Définir l'ordre des mois en français
+mois_fr = ['janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre']
+paris_2024['Mois'] = pd.Categorical(paris_2024['Mois'], categories=mois_fr, ordered=True)
+paris_2024 = paris_2024.sort_values('Mois')
+
+# 绘制温度变化曲线
+# Tracer l'évolution de la température maximale
+plt.figure(figsize=(10,6))
+plt.plot(paris_2024['Mois'], paris_2024['Temperature_maximale'], marker='o', color='blue')
+plt.title("Évolution de la température maximale à Paris en 2024")
+plt.xlabel("Mois")
+plt.ylabel("Température maximale (°C)")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# 评论：
+# On observe que la température maximale à Paris en 2024 augmente progressivement du janvier jusqu'à l'été (juillet-août),
+# puis diminue vers la fin de l'année. Ce schéma est typique du climat tempéré, avec des étés chauds et des hivers doux.
+# Les pics de température sont atteints en juillet et août, tandis que les températures les plus basses sont en hiver (janvier, décembre). 
