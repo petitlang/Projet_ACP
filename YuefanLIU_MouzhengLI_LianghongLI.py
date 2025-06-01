@@ -667,3 +667,41 @@ df_reponses.loc[df_reponses['Question'] == 'q16b', 'Reponse1'] = len(best_vars) 
 df_reponses.loc[df_reponses['Question'] == 'q16b', 'Reponse2'] = best_r2_adj if best_vars is not None else ''
 df_reponses.loc[df_reponses['Question'] == 'q16b', 'Reponse3'] = str([f'Temp_{i+1}' for i in best_vars]) if best_vars is not None else ''
 df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
+
+# Question 17 : Prédiction pour janvier-avril 2025 avec le modèle multivarié optimal
+# 真实温度
+# Températures réelles
+T_reelles = [7.5, 8.6, 14.6, 20.0]
+mois_pred = ['janvier', 'février', 'mars', 'avril']
+
+# 用2024年最后max_lag个月温度递推预测2025年1-4月
+# Prédire les températures maximales pour janvier à avril 2025
+T_2024 = list(data_2024['Temperature_maximale'].values)
+T_predites = []
+T_input = T_2024.copy()
+for i in range(4):
+    if best_vars is not None:
+        X_pred = np.array([T_input[-(j+1)] for j in best_vars]).reshape(1, -1)
+        T_pred = best_model.predict(X_pred)[0]
+        T_predites.append(T_pred)
+        T_input.append(T_pred)
+    else:
+        T_predites.append(np.nan)
+
+# 计算与真实值的差值
+# Calculer les écarts
+ecarts = [T_predites[i] - T_reelles[i] if not np.isnan(T_predites[i]) else None for i in range(4)]
+
+for i in range(4):
+    print(f"{mois_pred[i].capitalize()} 2025 : prédite = {T_predites[i]:.2f} °C, réelle = {T_reelles[i]} °C, écart = {ecarts[i]:.2f} °C")
+
+# 写入csv
+# Écrire les résultats dans le fichier de réponses
+df_reponses.loc[df_reponses['Question'] == 'q17', 'Reponse1'] = str(T_predites)
+df_reponses.loc[df_reponses['Question'] == 'q17', 'Reponse2'] = str(ecarts)
+df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
+
+# 评论：
+# On constate que l'écart entre les températures prédites et réelles peut être important, surtout pour les mois éloignés de la période d'apprentissage.
+# Cela montre que le modèle multivarié, bien qu'il puisse s'ajuster aux données passées, n'est pas toujours fiable pour la prévision à long terme (effet d'accumulation d'erreur, extrapolation).
+# Il est donc préférable de rester prudent dans l'utilisation de ce modèle pour la prévision de plusieurs mois à l'avance.
