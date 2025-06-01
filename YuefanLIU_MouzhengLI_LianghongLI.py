@@ -8,6 +8,7 @@ import calendar
 from sklearn.linear_model import LinearRegression
 import numpy as np
 from scipy import stats
+from itertools import combinations
 
 # Question 0 : Initialisation du fichier de réponses
 # 初始化答案文件
@@ -589,3 +590,80 @@ plt.show()
 # On observe que les deux années présentent une évolution saisonnière similaire :
 # la température augmente du début de l'année jusqu'à l'été (juillet-août), puis diminue en automne et hiver.
 # Cependant, on peut remarquer des différences de niveau ou de pics entre les deux années, ce qui peut être dû à la variabilité climatique interannuelle.
+
+# Question 16 : Sélection de variables pour la régression multivariée
+from itertools import combinations
+
+# 构造滞后特征矩阵
+# Construction des variables de température des mois précédents (lags)
+max_lag = 12
+T = data_2024['Temperature_maximale'].values
+X_lags = []
+y = []
+for i in range(max_lag, len(T)):
+    X_lags.append([T[i-j-1] for j in range(max_lag)])
+    y.append(T[i])
+X_lags = np.array(X_lags)
+y = np.array(y)
+
+# 所有组合数（不含空集）
+# Nombre de combinaisons possibles (hors ensemble vide)
+comb_count = sum([int(stats.comb(max_lag, k)) for k in range(1, max_lag+1)])
+print(f"Nombre de combinaisons possibles : {comb_count}")
+
+# 记录最优结果
+# Stocker le meilleur résultat
+best_r2_adj = -np.inf
+best_vars = None
+best_model = None
+best_pvalues = None
+best_coefs = None
+
+for k in range(1, max_lag+1):
+    for idxs in combinations(range(max_lag), k):
+        X_sel = X_lags[:, idxs]
+        model = LinearRegression().fit(X_sel, y)
+        y_pred = model.predict(X_sel)
+        r2 = model.score(X_sel, y)
+        n = len(y)
+        p = X_sel.shape[1]
+        r2_adj = 1 - (1 - r2) * (n - 1) / (n - p - 1)
+        # 计算p值（用t检验，近似）
+        residuals = y - y_pred
+        SSE = np.sum(residuals**2)
+        se = np.sqrt(SSE / (n - p - 1))
+        X_design = np.hstack([np.ones((n,1)), X_sel])
+        cov = np.linalg.inv(X_design.T @ X_design)
+        se_betas = np.sqrt(np.diag(cov)) * se
+        t_stats = np.hstack([model.intercept_, model.coef_]) / se_betas
+        pvals = 2 * (1 - stats.t.cdf(np.abs(t_stats), df=n-p-1))
+        # 只考虑所有变量p值<0.05的情况
+        if r2_adj > best_r2_adj and np.all(pvals[1:] < 0.05):
+            best_r2_adj = r2_adj
+            best_vars = idxs
+            best_model = model
+            best_pvalues = pvals
+            best_coefs = np.hstack([model.intercept_, model.coef_])
+
+# 输出最优结果
+if best_vars is not None:
+    print(f"R2 ajusté optimal : {best_r2_adj:.4f}")
+    print(f"Variables sélectionnées (lags) : {[f'Temp_{i+1}' for i in best_vars]}")
+    print(f"Nombre de variables : {len(best_vars)}")
+    print(f"Coefficients : {best_coefs}")
+    print(f"p-values : {best_pvalues}")
+    if np.all(best_pvalues[1:] < 0.05):
+        conclusion = "Oui, il existe une relation linéaire significative (α=5%)."
+    else:
+        conclusion = "Non, pas de relation linéaire significative (α=5%)."
+else:
+    print("Aucune combinaison n'a toutes les p-values < 0.05.")
+    conclusion = "Non, pas de relation linéaire significative (α=5%)."
+
+# 写入csv
+# Écrire les résultats dans le fichier de réponses
+df_reponses.loc[df_reponses['Question'] == 'q16a', 'Reponse1'] = comb_count
+df_reponses.loc[df_reponses['Question'] == 'q16b', 'Reponse1'] = len(best_vars) if best_vars is not None else 0
+df_reponses.loc[df_reponses['Question'] == 'q16b', 'Reponse2'] = best_r2_adj if best_vars is not None else ''
+df_reponses.loc[df_reponses['Question'] == 'q16b', 'Reponse3'] = str([f'Temp_{i+1}' for i in best_vars]) if best_vars is not None else ''
+df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
