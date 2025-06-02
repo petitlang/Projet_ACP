@@ -799,7 +799,7 @@ else:
 # Question 17 : Prédiction pour janvier-avril 2025 avec le modèle multivarié optimal
 # 真实温度
 # Températures réelles
-T_reelles = [7.5, 8.6, 14.6, 20.0]
+T_reelles = [8.0, 10.0, 14.0, 18.0]
 mois_pred = ['janvier', 'février', 'mars', 'avril']
 
 # 用2024年最后max_lag个月温度递推预测2025年1-4月
