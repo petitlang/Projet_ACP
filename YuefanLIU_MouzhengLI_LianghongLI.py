@@ -59,13 +59,19 @@ n_villes_nan = len(villes_nan)
 
 # 删除含缺失值的城市
 # Supprimer les villes avec des valeurs manquantes
-df_data1_clean = df_data1.dropna()
+df_data1_clean = df_data1.dropna().copy()  # 添加.copy()创建副本
 
 # 将答案写入csv文件
 # Écrire les réponses dans le fichier csv
 df_reponses = pd.read_csv('YuefanLIU_MouzhengLI_LianghongLI.csv')
 df_reponses.loc[df_reponses['Question'] == 'q1a', 'Reponse1'] = n_villes
 df_reponses.loc[df_reponses['Question'] == 'q1b', 'Reponse1'] = n_villes_nan
+
+# 打印回答
+print("\n[q1a] Nombre total de villes dans le dataset :", n_villes)
+print("[q1b] Nombre de villes avec des valeurs manquantes :", n_villes_nan)
+if n_villes_nan > 0:
+    print("   Villes concernées :", villes_nan)
 
 # Trouver la ville et la valeur associée à chaque extrême demandé (q2a-h)
 # Pour chaque variable, on cherche la ville avec la valeur minimale et maximale
@@ -110,6 +116,16 @@ for q, ville, val in reps:
     df_reponses.loc[df_reponses['Question'] == q, 'Reponse1'] = ville
     df_reponses.loc[df_reponses['Question'] == q, 'Reponse2'] = val
 
+# 打印回答
+print("\n[q2a] Ville avec la température minimale la plus basse :", ville_2a, f"({val_2a}°C)")
+print("[q2b] Ville avec la température minimale la plus haute :", ville_2b, f"({val_2b}°C)")
+print("[q2c] Ville avec la température maximale la plus basse :", ville_2c, f"({val_2c}°C)")
+print("[q2d] Ville avec la température maximale la plus haute :", ville_2d, f"({val_2d}°C)")
+print("[q2e] Ville avec les précipitations les plus faibles :", ville_2e, f"({val_2e}mm)")
+print("[q2f] Ville avec les précipitations les plus élevées :", ville_2f, f"({val_2f}mm)")
+print("[q2g] Ville avec l'ensoleillement le plus faible :", ville_2g, f"({val_2g}heures)")
+print("[q2h] Ville avec l'ensoleillement le plus élevé :", ville_2h, f"({val_2h}heures)")
+
 # Calculer la variance pour chaque variable demandée (q3a-d)
 # Utiliser la méthode .var() de pandas (par défaut, ddof=1 pour l'échantillon)
 var_temp_min = df_data1_clean['Temperature_minimale'].var()
@@ -128,6 +144,12 @@ var_reps = [
 for q, var in var_reps:
     df_reponses.loc[df_reponses['Question'] == q, 'Reponse1'] = var
 
+# 打印回答
+print("\n[q3a] Variance de la température minimale :", f"{var_temp_min:.4f}")
+print("[q3b] Variance de la température maximale :", f"{var_temp_max:.4f}")
+print("[q3c] Variance des précipitations :", f"{var_precip:.4f}")
+print("[q3d] Variance de l'ensoleillement :", f"{var_ensoleil:.4f}")
+
 # Calculer la moyenne, la médiane et l'écart-type de la température minimale (q4a, q4b, q4c)
 # Moyenne
 moyenne_temp_min = df_data1_clean['Temperature_minimale'].mean()
@@ -144,6 +166,11 @@ stat_reps = [
 ]
 for q, val in stat_reps:
     df_reponses.loc[df_reponses['Question'] == q, 'Reponse1'] = val
+
+# 打印回答
+print("\n[q4a] Moyenne de la température minimale :", f"{moyenne_temp_min:.2f}°C")
+print("[q4b] Médiane de la température minimale :", f"{mediane_temp_min:.2f}°C")
+print("[q4c] Écart-type de la température minimale :", f"{std_temp_min:.2f}°C")
 
 # Question 5
 # Calculer la moyenne, la médiane et l'écart-type de la variable de variance maximale (Duree_ensoleillement, q3d)
@@ -162,6 +189,11 @@ stat_reps_5 = [
 ]
 for q, val in stat_reps_5:
     df_reponses.loc[df_reponses['Question'] == q, 'Reponse1'] = val
+
+# 打印回答
+print("\n[q5a] Moyenne de la durée d'ensoleillement :", f"{moyenne_ensoleil:.2f} heures")
+print("[q5b] Médiane de la durée d'ensoleillement :", f"{mediane_ensoleil:.2f} heures")
+print("[q5c] Écart-type de la durée d'ensoleillement :", f"{std_ensoleil:.2f} heures")
 
 # Question 6
 # Calculer la matrice de corrélation pour les variables météorologiques
@@ -196,6 +228,14 @@ df_reponses.loc[df_reponses['Question'] == 'q6b', 'Reponse2'] = min_corr_val
 q6c_vars = f"{min_abs_corr[0]} & {min_abs_corr[1]}"
 df_reponses.loc[df_reponses['Question'] == 'q6c', 'Reponse1'] = q6c_vars
 df_reponses.loc[df_reponses['Question'] == 'q6c', 'Reponse2'] = min_abs_corr_val
+
+# 打印回答
+print("\n[q6a] Variables les plus corrélées positivement :")
+print(f"   {q6a_vars} (r = {max_corr_val:.4f})")
+print("[q6b] Variables les plus corrélées négativement :")
+print(f"   {q6b_vars} (r = {min_corr_val:.4f})")
+print("[q6c] Variables les moins corrélées :")
+print(f"   {q6c_vars} (r = {min_abs_corr_val:.4f})")
 
 df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
 
@@ -266,7 +306,13 @@ villes_corr = df_data1_clean[cols].T.corr()
 
 # Afficher la matrice de corrélation sous forme de heatmap
 plt.figure(figsize=(12,10))
-sns.heatmap(villes_corr, cmap='coolwarm', annot=False, xticklabels=df_data1_clean['Ville'], yticklabels=df_data1_clean['Ville'])
+sns.heatmap(villes_corr, 
+            cmap='coolwarm', 
+            annot=True,  # 显示数值
+            fmt='.2f',   # 数值格式为两位小数
+            xticklabels=df_data1_clean['Ville'], 
+            yticklabels=df_data1_clean['Ville'],
+            annot_kws={'size': 8})  # 设置标签字体大小
 plt.title('Matrice de corrélation entre les villes')
 plt.xlabel('Ville')
 plt.ylabel('Ville')
@@ -305,6 +351,10 @@ var_pc2 = pca.explained_variance_ratio_[1] * 100
 df_reponses.loc[df_reponses['Question'] == 'q8a', 'Reponse1'] = var_pc1
 df_reponses.loc[df_reponses['Question'] == 'q8b', 'Reponse1'] = var_pc2
 df_reponses.to_csv(csv_path, index=False)
+
+# 打印回答
+print("\n[q8a] Pourcentage de variance expliquée par PC1 :", f"{var_pc1:.2f}%")
+print("[q8b] Pourcentage de variance expliquée par PC2 :", f"{var_pc2:.2f}%")
 
 # Explication :
 # On centre et réduit les données, puis on applique une ACP.
@@ -379,7 +429,7 @@ df_data2 = pd.read_csv('data2.csv')
 
 # 只保留2024年的数据
 # Garder uniquement les données de l'année 2024
-paris_2024 = df_data2[df_data2['Annee'] == 2024]
+paris_2024 = df_data2[df_data2['Annee'] == 2024].copy()  # 创建副本
 
 # 为了保证月份顺序，定义法语月份顺序
 # Définir l'ordre des mois en français
@@ -420,6 +470,8 @@ for n in range(1, 13): # 从1月到12月
     # 只取最近n个月的数据
     # Prendre les n derniers mois
     data_n = paris_2024.tail(n)
+    if len(data_n) < 2:  # 确保至少有2个样本
+        continue
     X = data_n['numero_mois'].values.reshape(-1, 1)
     y = data_n['Temperature_maximale'].values
     model = LinearRegression()
@@ -430,7 +482,10 @@ for n in range(1, 13): # 从1月到12月
     r2 = model.score(X, y)
     # 计算R2 ajusté
     # Calculer R2 ajusté
-    r2_adj = 1 - (1 - r2) * (len(y) - 1) / (len(y) - X.shape[1] - 1) if n > 1 else np.nan
+    if len(y) > X.shape[1] + 1:  # 确保样本数大于变量数+1
+        r2_adj = 1 - (1 - r2) * (len(y) - 1) / (len(y) - X.shape[1] - 1)
+    else:
+        r2_adj = np.nan
     results.append({
         'n': n,
         'r2': r2,
@@ -443,56 +498,56 @@ for n in range(1, 13): # 从1月到12月
 # 找到R2 ajusté最大的n
 # Trouver la valeur optimale de n (R2 ajusté maximal)
 results_df = pd.DataFrame(results)
-best_row = results_df.loc[results_df['r2_adj'].idxmax()]
-n_opt = int(best_row['n'])
-r2_opt = best_row['r2']
-r2_adj_opt = best_row['r2_adj']
-beta0_opt = best_row['beta0']
-beta1_opt = best_row['beta1']
-model_opt = best_row['model']
+if not results_df.empty and not results_df['r2_adj'].isna().all():
+    best_row = results_df.loc[results_df['r2_adj'].idxmax()]
+    n_opt = int(best_row['n'])
+    r2_opt = best_row['r2']
+    r2_adj_opt = best_row['r2_adj']
+    beta0_opt = best_row['beta0']
+    beta1_opt = best_row['beta1']
+    model_opt = best_row['model']
+else:
+    print("Aucun modèle valide n'a été trouvé")
+    n_opt = np.nan
+    r2_opt = np.nan
+    r2_adj_opt = np.nan
+    beta0_opt = np.nan
+    beta1_opt = np.nan
+    model_opt = None
 
-print(f"Valeur optimale de n : {n_opt}")
-print(f"R2 : {r2_opt:.4f}")
-print(f"R2 ajusté : {r2_adj_opt:.4f}")
-print(f"β0 : {beta0_opt:.4f}")
-print(f"β1 : {beta1_opt:.4f}")
+if model_opt is not None:
+    print("\n=== Détails du modèle de régression linéaire simple ===")
+    print(f"Nombre de mois utilisés (n) : {n_opt}")
+    print(f"R² : {r2_opt:.4f}")
+    print(f"R² ajusté : {r2_adj_opt:.4f}")
+    print(f"\nCoefficients du modèle :")
+    print(f"Constante (β₀) : {beta0_opt:.4f}")
+    print(f"Pente (β₁) : {beta1_opt:.4f}")
+    
+    print("\nÉquation du modèle :")
+    print(f"Température = {beta0_opt:.4f} + {beta1_opt:.4f} × Numéro_mois")
+    
+    # 预测2025年1月（numéro mois=12）的温度
+    # Prédire la température maximale pour janvier 2025 (numéro mois=12)
+    pred_2025_jan = model_opt.predict(np.array([[12]]))[0]
+    print(f"\nPrédiction pour janvier 2025 : {pred_2025_jan:.2f}°C")
 
-# 预测2025年1月（numéro mois=12）的温度
-# Prédire la température maximale pour janvier 2025 (numéro mois=12)
-pred_2025_jan = model_opt.predict(np.array([[12]]))[0]
-print(f"Température maximale prédite pour janvier 2025 : {pred_2025_jan:.2f} °C")
-
-# 可视化：最优n下的拟合曲线
-# Visualisation : courbe de régression pour n optimal
-plt.figure(figsize=(10,6))
-# 画真实点
-plt.scatter(paris_2024['numero_mois'], paris_2024['Temperature_maximale'], color='blue', label='Données réelles')
-# 画拟合点
-X_fit = paris_2024['numero_mois'].values.reshape(-1, 1)
-y_fit = model_opt.predict(X_fit)
-plt.plot(paris_2024['numero_mois'], y_fit, color='red', label='Régression linéaire (n optimal)')
-plt.xlabel('Numéro du mois (0=janvier, 11=décembre)')
-plt.ylabel('Température maximale (°C)')
-plt.title(f"Régression linéaire (n optimal={n_opt}) sur les {n_opt} derniers mois")
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.show()
-
-# 分析：
-# Analyse quantitative et visuelle :
-# Le meilleur modèle (n optimal) est celui qui maximise le R2 ajusté, ce qui signifie qu'il explique le mieux la variance des températures tout en évitant le sur-apprentissage.
-# On observe que la courbe de régression s'ajuste bien aux données récentes. La valeur de β1 indique la tendance (positive ou négative) des températures sur la période considérée.
-# La prédiction pour janvier 2025 est obtenue en extrapolant la droite de régression pour numéro mois=12.
-
-# Explication :
-# La régression linéaire simple est une méthode statistique pour étudier la relation entre une variable dépendante (température maximale) et une variable indépendante (numéro du mois).
-# On utilise les données de 2024 pour prédire la température maximale en janvier 2025.
-# On calcule le coefficient de détermination (R2) pour évaluer la qualité de l'ajustement du modèle.
-# On utilise le modèle de régression linéaire pour prédire la température maximale en janvier 2025.
-# On affiche la courbe de régression pour le modèle optimal et on prédit la température maximale pour janvier 2025.
-# On évalue la qualité du modèle en calculant le R2 ajusté et on prédit la température maximale pour janvier 2025.
-# On affiche la courbe de régression pour le modèle optimal et on prédit la température maximale pour janvier 2025.
+    # 可视化：最优n下的拟合曲线
+    # Visualisation : courbe de régression pour n optimal
+    plt.figure(figsize=(10,6))
+    # 画真实点
+    plt.scatter(paris_2024['numero_mois'], paris_2024['Temperature_maximale'], color='blue', label='Données réelles')
+    # 画拟合点
+    X_fit = paris_2024['numero_mois'].values.reshape(-1, 1)
+    y_fit = model_opt.predict(X_fit)
+    plt.plot(paris_2024['numero_mois'], y_fit, color='red', label='Régression linéaire (n optimal)')
+    plt.xlabel('Numéro du mois (0=janvier, 11=décembre)')
+    plt.ylabel('Température maximale (°C)')
+    plt.title(f"Régression linéaire (n optimal={n_opt}) sur les {n_opt} derniers mois")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 # 写入csv文件
 # Écrire les résultats dans le fichier de réponses pour la question 12
@@ -502,6 +557,13 @@ df_reponses.loc[df_reponses['Question'] == 'q12c', 'Reponse1'] = r2_opt
 df_reponses.loc[df_reponses['Question'] == 'q12d', 'Reponse1'] = beta0_opt
 df_reponses.loc[df_reponses['Question'] == 'q12e', 'Reponse1'] = beta1_opt
 df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
+
+# 打印回答
+print("\n[q12a] Valeur optimale de n :", n_opt)
+print("[q12b] R² ajusté optimal :", f"{r2_adj_opt:.4f}")
+print("[q12c] R² optimal :", f"{r2_opt:.4f}")
+print("[q12d] Coefficient β0 :", f"{beta0_opt:.4f}")
+print("[q12e] Coefficient β1 :", f"{beta1_opt:.4f}")
 
 # Question 13 : Comparaison entre la température réelle et prédite pour janvier 2025
 # La température réelle en janvier 2025 était de 7,5°C
@@ -522,6 +584,10 @@ if 'df_reponses' not in locals():
 df_reponses.loc[df_reponses['Question'] == 'q13a', 'Reponse1'] = pred_2025_jan
 df_reponses.loc[df_reponses['Question'] == 'q13b', 'Reponse1'] = écart
 df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
+
+# 打印回答
+print("\n[q13a] Température maximale prédite pour janvier 2025 :", f"{pred_2025_jan:.2f}°C")
+print("[q13b] Écart entre la température prédite et réelle :", f"{écart:.2f}°C")
 
 # Question 14 : Test d'hypothèse pour le coefficient β1 du modèle optimal
 
@@ -570,6 +636,10 @@ df_reponses.loc[df_reponses['Question'] == 'q14a', 'Reponse1'] = p_value
 df_reponses.loc[df_reponses['Question'] == 'q14b', 'Reponse1'] = conclusion
 df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
 
+# 打印回答
+print("\n[q14a] p-value pour le test de β1 :", f"{p_value:.4g}")
+print("[q14b] Conclusion (α=5%) :", conclusion)
+
 # Question 15 : Superposer l'évolution de température en 2023 et 2024 à Paris
 # 在同一张图上画出2023年和2024年每月温度曲线
 # Tracer sur la même courbe l'évolution de la température maximale à Paris en 2023 et 2024
@@ -607,10 +677,13 @@ from itertools import combinations
 # 构造滞后特征矩阵
 # Construction des variables de température des mois précédents (lags)
 max_lag = 12
-T = data_2024['Temperature_maximale'].values
+# 合并2023和2024年的数据
+T = np.concatenate([data_2023['Temperature_maximale'].values, data_2024['Temperature_maximale'].values])
 X_lags = []
 y = []
-for i in range(max_lag, len(T)):
+# 从2024年1月开始建立模型
+start_idx = 12  # 2024年的1月
+for i in range(start_idx, len(T)):
     X_lags.append([T[i-j-1] for j in range(max_lag)])
     y.append(T[i])
 X_lags = np.array(X_lags).reshape(-1, max_lag)  # S'assurer que X_lags est bien une matrice 2D
@@ -638,42 +711,67 @@ else:
     for k in range(1, max_lag+1):
         for idxs in combinations(range(max_lag), k):
             X_sel = X_lags[:, idxs]
-            if X_sel.shape[0] == 0:
-                continue  # Sauter les cas où il n'y a pas d'échantillons
+            if X_sel.shape[0] <= X_sel.shape[1] + 1:  # 确保样本量大于变量数+1
+                continue
             model = LinearRegression().fit(X_sel, y)
             y_pred = model.predict(X_sel)
             r2 = model.score(X_sel, y)
             n = len(y)
             p = X_sel.shape[1]
-            r2_adj = 1 - (1 - r2) * (n - 1) / (n - p - 1)
-            # 计算p值（用t检验，近似）
+            
+            # 安全计算调整后的R²
+            if n > p + 1:
+                r2_adj = 1 - (1 - r2) * (n - 1) / (n - p - 1)
+            else:
+                continue
+                
+            # 安全计算标准误差
             residuals = y - y_pred
             SSE = np.sum(residuals**2)
-            se = np.sqrt(SSE / (n - p - 1))
-            X_design = np.hstack([np.ones((n,1)), X_sel])
-            cov = np.linalg.inv(X_design.T @ X_design)
-            se_betas = np.sqrt(np.diag(cov)) * se
-            t_stats = np.hstack([model.intercept_, model.coef_]) / se_betas
-            pvals = 2 * (1 - stats.t.cdf(np.abs(t_stats), df=n-p-1))
-            # 只考虑所有变量p值<0.05的情况
-            if r2_adj > best_r2_adj and np.all(pvals[1:] < 0.05):
-                best_r2_adj = r2_adj
-                best_vars = idxs
-                best_model = model
-                best_pvalues = pvals
-                best_coefs = np.hstack([model.intercept_, model.coef_])
+            if n > p + 1 and SSE > 0:
+                se = np.sqrt(SSE / (n - p - 1))
+                X_design = np.hstack([np.ones((n,1)), X_sel])
+                try:
+                    cov = np.linalg.inv(X_design.T @ X_design)
+                    se_betas = np.sqrt(np.diag(cov)) * se
+                    t_stats = np.hstack([model.intercept_, model.coef_]) / se_betas
+                    pvals = 2 * (1 - stats.t.cdf(np.abs(t_stats), df=n-p-1))
+                    
+                    # 只考虑所有变量p值<0.05的情况
+                    if r2_adj > best_r2_adj and np.all(pvals[1:] < 0.05):
+                        best_r2_adj = r2_adj
+                        best_vars = idxs
+                        best_model = model
+                        best_pvalues = pvals
+                        best_coefs = np.hstack([model.intercept_, model.coef_])
+                except np.linalg.LinAlgError:
+                    continue
+            else:
+                continue
 
     # 输出最优结果
     if best_vars is not None:
-        print(f"R2 ajusté optimal : {best_r2_adj:.4f}")
-        print(f"Variables sélectionnées (lags) : {[f'Temp_{i+1}' for i in best_vars]}")
-        print(f"Nombre de variables : {len(best_vars)}")
-        print(f"Coefficients : {best_coefs}")
-        print(f"p-values : {best_pvalues}")
+        print("\n=== Détails du meilleur modèle ===")
+        print(f"R² ajusté : {best_r2_adj:.4f}")
+        print(f"Nombre de variables sélectionnées : {len(best_vars)}")
+        print("\nDétails des variables :")
+        print("Nom de variable\t\tCoefficient\t\tp-valeur")
+        print("-" * 60)
+        print(f"Constante\t\t{best_coefs[0]:.4f}\t\t{best_pvalues[0]:.4f}")
+        for i, (var_idx, coef, pval) in enumerate(zip(best_vars, best_coefs[1:], best_pvalues[1:])):
+            print(f"Temp_{var_idx+1}\t\t{coef:.4f}\t\t{pval:.4f}")
+        
+        print("\nÉquation du modèle :")
+        equation = f"Température = {best_coefs[0]:.4f}"
+        for i, (var_idx, coef) in enumerate(zip(best_vars, best_coefs[1:])):
+            equation += f" + {coef:.4f} × Temp_{var_idx+1}"
+        print(equation)
+        
         if np.all(best_pvalues[1:] < 0.05):
             conclusion = "Oui, il existe une relation linéaire significative (α=5%)."
         else:
             conclusion = "Non, pas de relation linéaire significative (α=5%)."
+        print(f"\nConclusion : {conclusion}")
     else:
         print("Aucune combinaison n'a toutes les p-values < 0.05.")
         conclusion = "Non, pas de relation linéaire significative (α=5%)."
@@ -685,6 +783,18 @@ else:
     df_reponses.loc[df_reponses['Question'] == 'q16b', 'Reponse2'] = best_r2_adj if best_vars is not None else ''
     df_reponses.loc[df_reponses['Question'] == 'q16b', 'Reponse3'] = str([f'Temp_{i+1}' for i in best_vars]) if best_vars is not None else ''
     df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
+
+    # 打印回答
+    print("\n[q16a] Nombre total de combinaisons possibles :", comb_count if X_lags.shape[0] > 0 else 0)
+    if best_vars is not None:
+        print("[q16b] Modèle optimal :")
+        print(f"   Nombre de variables : {len(best_vars)}")
+        print(f"   R² ajusté : {best_r2_adj:.4f}")
+        print(f"   Variables sélectionnées : {[f'Temp_{i+1}' for i in best_vars]}")
+        print(f"   Conclusion : {conclusion}")
+    else:
+        print("[q16b] Aucun modèle avec toutes les variables significatives n'a été trouvé")
+        print(f"   Conclusion : {conclusion}")
 
 # Question 17 : Prédiction pour janvier-avril 2025 avec le modèle multivarié optimal
 # 真实温度
@@ -730,6 +840,24 @@ for i in range(4):
 df_reponses.loc[df_reponses['Question'] == 'q17', 'Reponse1'] = str(T_predites)
 df_reponses.loc[df_reponses['Question'] == 'q17', 'Reponse2'] = str(ecarts)
 df_reponses.to_csv('YuefanLIU_MouzhengLI_LianghongLI.csv', index=False)
+
+# 打印回答
+print("\n[q17] Prédictions pour janvier-avril 2025 :")
+for i in range(4):
+    pred = T_predites[i]
+    ecart = ecarts[i]
+    if pred is None or (isinstance(pred, float) and np.isnan(pred)):
+        pred_str = "NA"
+    else:
+        pred_str = f"{pred:.2f}"
+    if ecart is None or (isinstance(ecart, float) and np.isnan(ecart)):
+        ecart_str = "NA"
+    else:
+        ecart_str = f"{ecart:.2f}"
+    print(f"  {mois_pred[i].capitalize()} 2025 :")
+    print(f"    Température prédite : {pred_str}°C")
+    print(f"    Température réelle : {T_reelles[i]}°C")
+    print(f"    Écart : {ecart_str}°C")
 
 # 评论：
 # On constate que l'écart entre les températures prédites et réelles peut être important, surtout pour les mois éloignés de la période d'apprentissage.
