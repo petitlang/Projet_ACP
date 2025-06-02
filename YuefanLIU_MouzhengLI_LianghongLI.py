@@ -516,16 +516,21 @@ else:
     model_opt = None
 
 if model_opt is not None:
-    print(f"Valeur optimale de n : {n_opt}")
-    print(f"R2 : {r2_opt:.4f}")
-    print(f"R2 ajusté : {r2_adj_opt:.4f}")
-    print(f"β0 : {beta0_opt:.4f}")
-    print(f"β1 : {beta1_opt:.4f}")
-
+    print("\n=== Détails du modèle de régression linéaire simple ===")
+    print(f"Nombre de mois utilisés (n) : {n_opt}")
+    print(f"R² : {r2_opt:.4f}")
+    print(f"R² ajusté : {r2_adj_opt:.4f}")
+    print(f"\nCoefficients du modèle :")
+    print(f"Constante (β₀) : {beta0_opt:.4f}")
+    print(f"Pente (β₁) : {beta1_opt:.4f}")
+    
+    print("\nÉquation du modèle :")
+    print(f"Température = {beta0_opt:.4f} + {beta1_opt:.4f} × Numéro_mois")
+    
     # 预测2025年1月（numéro mois=12）的温度
     # Prédire la température maximale pour janvier 2025 (numéro mois=12)
     pred_2025_jan = model_opt.predict(np.array([[12]]))[0]
-    print(f"Température maximale prédite pour janvier 2025 : {pred_2025_jan:.2f} °C")
+    print(f"\nPrédiction pour janvier 2025 : {pred_2025_jan:.2f}°C")
 
     # 可视化：最优n下的拟合曲线
     # Visualisation : courbe de régression pour n optimal
@@ -746,15 +751,27 @@ else:
 
     # 输出最优结果
     if best_vars is not None:
-        print(f"R2 ajusté optimal : {best_r2_adj:.4f}")
-        print(f"Variables sélectionnées (lags) : {[f'Temp_{i+1}' for i in best_vars]}")
-        print(f"Nombre de variables : {len(best_vars)}")
-        print(f"Coefficients : {best_coefs}")
-        print(f"p-values : {best_pvalues}")
+        print("\n=== Détails du meilleur modèle ===")
+        print(f"R² ajusté : {best_r2_adj:.4f}")
+        print(f"Nombre de variables sélectionnées : {len(best_vars)}")
+        print("\nDétails des variables :")
+        print("Nom de variable\t\tCoefficient\t\tp-valeur")
+        print("-" * 60)
+        print(f"Constante\t\t{best_coefs[0]:.4f}\t\t{best_pvalues[0]:.4f}")
+        for i, (var_idx, coef, pval) in enumerate(zip(best_vars, best_coefs[1:], best_pvalues[1:])):
+            print(f"Temp_{var_idx+1}\t\t{coef:.4f}\t\t{pval:.4f}")
+        
+        print("\nÉquation du modèle :")
+        equation = f"Température = {best_coefs[0]:.4f}"
+        for i, (var_idx, coef) in enumerate(zip(best_vars, best_coefs[1:])):
+            equation += f" + {coef:.4f} × Temp_{var_idx+1}"
+        print(equation)
+        
         if np.all(best_pvalues[1:] < 0.05):
             conclusion = "Oui, il existe une relation linéaire significative (α=5%)."
         else:
             conclusion = "Non, pas de relation linéaire significative (α=5%)."
+        print(f"\nConclusion : {conclusion}")
     else:
         print("Aucune combinaison n'a toutes les p-values < 0.05.")
         conclusion = "Non, pas de relation linéaire significative (α=5%)."
